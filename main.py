@@ -11,7 +11,7 @@ from prompt import ASSESSOR_PROMPT
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
-
+from typing import Union
 
 
 load_dotenv()
@@ -101,12 +101,23 @@ Candidate Essay:
 async def assess(
     task_type: str = Form(...),
     question_text: Optional[str] = Form(None),
-    question_images: Optional[List[UploadFile]] = File(None),
+    question_images: Optional[Union[UploadFile, List[UploadFile]]] = File(None),
     answer_text: Optional[str] = Form(None),
-    answer_images: Optional[List[UploadFile]] = File(None),
+    answer_images: Optional[Union[UploadFile, List[UploadFile]]] = File(None),
     name: Optional[str] = Form(None),
     email: Optional[str] = Form(None)
 ):
+    # Normalize files to lists
+    if question_images is None:
+        question_images = []
+    elif not isinstance(question_images, list):
+        question_images = [question_images]
+
+    if answer_images is None:
+        answer_images = []
+    elif not isinstance(answer_images, list):
+        answer_images = [answer_images]
+
     # Ensure at least one input for question
     if not question_text and not question_images:
         return JSONResponse(content={"error": "Provide either question text or question images"}, status_code=400)
