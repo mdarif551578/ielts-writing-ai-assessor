@@ -1,5 +1,6 @@
-from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile, Form, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from PIL import Image
 from io import BytesIO
@@ -13,7 +14,7 @@ import os
 
 load_dotenv()
 app = FastAPI()
-
+templates = Jinja2Templates(directory="templates")
 
 # Configure Gemini (use environment variable in production)
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -110,4 +111,8 @@ async def assess(
     evaluation = await get_task_evaluation(question, answer, task_type, name, email)
     return JSONResponse(content=evaluation)
 
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 

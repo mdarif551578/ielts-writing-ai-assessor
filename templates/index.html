@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IELTS Writing Task Assessor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto py-10 px-6">
+    <h1 class="text-3xl font-bold text-center mb-6">IELTS Writing Task Assessor</h1>
+    <p class="text-center mb-4">Upload your IELTS Writing Task question and answer, and get an AI-powered assessment.</p>
+
+    <!-- API Docs -->
+    <div class="bg-white rounded-2xl shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-2">API Documentation</h2>
+      <p class="mb-2">Endpoint: <code class="bg-gray-200 px-2 py-1 rounded">POST /assess/</code></p>
+      <ul class="list-disc list-inside mb-4">
+        <li><strong>task_type</strong>: (required) The writing task type (Task 1 / Task 2).</li>
+        <li><strong>question_text</strong> or <strong>question_images</strong>: Provide either text or image(s) of the task question.</li>
+        <li><strong>answer_text</strong> or <strong>answer_images</strong>: Provide either text or image(s) of the candidate’s answer.</li>
+        <li><strong>name</strong> and <strong>email</strong>: (optional) Candidate details.</li>
+      </ul>
+      <p class="text-gray-600">Response: JSON object with AI evaluation of the answer.</p>
+    </div>
+
+    <!-- Try it out form -->
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-xl font-semibold mb-2">Try it Out</h2>
+      <form id="assessForm" class="space-y-4">
+        <div>
+          <label class="block font-medium">Task Type</label>
+          <input type="text" name="task_type" class="w-full border rounded p-2" required>
+        </div>
+        <div>
+          <label class="block font-medium">Question Text</label>
+          <textarea name="question_text" class="w-full border rounded p-2"></textarea>
+        </div>
+        <div>
+          <label class="block font-medium">Question Images</label>
+          <input type="file" name="question_images" multiple class="w-full">
+        </div>
+        <div>
+          <label class="block font-medium">Answer Text</label>
+          <textarea name="answer_text" class="w-full border rounded p-2"></textarea>
+        </div>
+        <div>
+          <label class="block font-medium">Answer Images</label>
+          <input type="file" name="answer_images" multiple class="w-full">
+        </div>
+        <div>
+          <label class="block font-medium">Name</label>
+          <input type="text" name="name" class="w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block font-medium">Email</label>
+          <input type="email" name="email" class="w-full border rounded p-2">
+        </div>
+        <button id="submitBtn" type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+          Submit
+        </button>
+      </form>
+    </div>
+
+    <!-- JSON response section -->
+    <div id="responseContainer" class="bg-white rounded-2xl shadow p-6 mt-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Assessment Result</h2>
+      <pre id="jsonResponse" class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"></pre>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("assessForm");
+    const responseContainer = document.getElementById("responseContainer");
+    const jsonResponse = document.getElementById("jsonResponse");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      // disable button + show loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+
+      try {
+        const res = await fetch("/assess/", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        jsonResponse.textContent = JSON.stringify(data, null, 2);
+        responseContainer.classList.remove("hidden");
+      } catch (err) {
+        jsonResponse.textContent = "Error: " + err.message;
+        responseContainer.classList.remove("hidden");
+      } finally {
+        // re-enable button
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit";
+      }
+    });
+  </script>
+</body>
+</html>
