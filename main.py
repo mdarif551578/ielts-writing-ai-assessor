@@ -10,11 +10,22 @@ import asyncio
 from prompt import ASSESSOR_PROMPT
 from dotenv import load_dotenv
 import os
+from fastapi.middleware.cors import CORSMiddleware
+
 
 
 load_dotenv()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+# Allow CORS for all origins, methods, and headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or list of allowed origins, e.g. ["https://example.com"]
+    allow_credentials=True,
+    allow_methods=["*"],  # GET, POST, etc.
+    allow_headers=["*"],  # Allow all headers
+)
+
 
 # Configure Gemini (use environment variable in production)
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
