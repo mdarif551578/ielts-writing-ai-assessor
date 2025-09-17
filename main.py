@@ -31,14 +31,10 @@ app.add_middleware(
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 model = genai.GenerativeModel("models/gemini-2.0-flash")
 
-
 async def get_text_from_images(files: List[UploadFile], is_question: bool) -> str:
-    pil_images = []
-    for file in files:
-        contents = await file.read()
-        img = Image.open(BytesIO(contents))
-        pil_images.append(img)
-    
+    if not files:
+        return ""
+
     prompt = (
         """
         You are given an IELTS Writing Task question paper image(s). Describe it completely and accurately. 
@@ -53,11 +49,22 @@ async def get_text_from_images(files: List[UploadFile], is_question: bool) -> st
         Do not evaluate, summarize, or correct the answer — only provide a faithful transcription of the handwritten response.
         """
     )
-    
-    response = await asyncio.to_thread(model.generate_content, [prompt] + pil_images)
-    response.resolve()
-    return response.text
 
+    results = []
+
+    for idx, file in enumerate(files):
+        contents = await file.read()
+        img = Image.open(BytesIO(contents))
+
+        # Call Gemini for each image individually
+        response = await asyncio.to_thread(model.generate_content, [prompt, img])
+        response.resolve()
+        results.append(response.text.strip())
+
+    # Combine results
+    combined_text = "\n\n".join(results)
+    return combined_text
+    
 
 async def get_task_evaluation(
     question: str, answer: str, task_type: str, name: Optional[str] = None, email: Optional[str] = None
