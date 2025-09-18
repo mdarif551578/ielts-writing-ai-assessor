@@ -3,13 +3,15 @@ from PIL import Image
 import rich
 import json
 from prompt import ASSESSOR_PROMPT
-
+from dotenv import load_dotenv
+import os
 
 
 
 def configure_model():
+    load_dotenv()
     global model
-    genai.configure(api_key="AIzaSyDtPOZPVSC7YS3je1GdXGoQE2PtJE2vBl8")
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = genai.GenerativeModel("models/gemini-2.0-flash")
 
 
@@ -23,7 +25,7 @@ def get_question_text() -> str:
     question_img = Image.open('./images/question.jpg')
     response = model.generate_content(
         [
-            "You are given an IELTS Writing Task 2 question paper image. Describe it completely and accurately. \
+            "You are given an IELTS Writing Task question paper image(s). Describe it completely and accurately. \
             Focus only on the task itself: state any images, diagrams, or text shown, and clearly extract the exact essay question or instruction. \
             Do not give explanations, strategies, or tips—only describe what the question paper asks the candidate to do.",
             question_img
@@ -40,7 +42,7 @@ def get_answer_text() -> str:
     ]
     response = model.generate_content(
         [
-            "You are given an image of a handwritten IELTS Writing Task 2 answer sheet. \
+            "You are given image(s) of a handwritten IELTS Writing Task answer sheet. \
             Read the handwriting carefully and transcribe it exactly into text. \
             Preserve the original spelling, grammar, punctuation, and paragraph breaks as written by the candidate. \
             Do not evaluate, summarize, or correct the answer — only provide a faithful transcription of the handwritten response.",
